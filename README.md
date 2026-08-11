@@ -2,8 +2,7 @@ ffsqrt
 ======
 
 Was based on https://github.com/ReneBoedker/algobra ,
-but that has a very bad bug in it, so now based on my fork
-https://github.com/glycerine/algobra :
+but that has a very bad bug in it (see https://github.com/ReneBoedker/algobra/issues/2 ), so, for now, based on my fork https://github.com/glycerine/algobra :
 
 to compute the square root of elements from a 
 general finite field GF(p^k), where p is a prime number, 
