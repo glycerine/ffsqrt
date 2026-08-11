@@ -10,7 +10,7 @@
 // to be one, but this package verifies that seed and falls back to a
 // deterministic search if needed.
 //
-// Built against github.com/glycerine/algobra v0.2.2-jea's ff.Field / ff.Element
+// Built against github.com/glycerine/algobra ff.Field / ff.Element
 // interfaces (github.com/glycerine/algobra/finitefield/ff), which are
 // implemented by extfield.Field (arbitrary p^k), primefield.Field (GF(p)),
 // and binfield.Field (GF(2^k)) alike, so this code works unmodified against
