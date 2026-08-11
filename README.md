@@ -15,7 +15,7 @@ touches the internal representation of elements.
 So the same algorithm that finds square roots mod 
 a prime also finds them in GF(p^k), as long as you 
 have multiplication, inversion, and exponentiation, 
-plus one element that generates F*. 
+plus a quadratic non-residue to seed the algorithm. 
 
 algobra's ff.Field/ff.Element interfaces give you those,
 so we just use them.
@@ -24,7 +24,7 @@ Two things the enclosed sqrt.go gets versus a naive port of libnum:
 
 * Char-2 fields are trivial. In GF(2^k) every element is a square (squaring is the Frobenius automorphism), and the inverse is just a^(q/2) — no Tonelli–Shanks loop needed.
 
-* No random search for a non-residue. libnum finds a non-residue by testing random elements. Here, f.MultGenerator() already generates the whole multiplicative group, so g^((q-1)/2) = -1 automatically — it's a guaranteed non-residue with zero search.
+* No random search for a non-residue. libnum finds a non-residue by testing random elements. Here, we first try f.MultGenerator() and verify g^((q-1)/2) != 1. If that helper returns a non-generator, we fall back to a deterministic search for a usable non-residue.
 
 
 ------

@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/ReneBoedker/algobra/finitefield/binfield"
-	"github.com/ReneBoedker/algobra/finitefield/extfield"
-	"github.com/ReneBoedker/algobra/finitefield/ff"
-	"github.com/ReneBoedker/algobra/finitefield/primefield"
+	"github.com/glycerine/algobra/finitefield/binfield"
+	"github.com/glycerine/algobra/finitefield/extfield"
+	"github.com/glycerine/algobra/finitefield/ff"
+	"github.com/glycerine/algobra/finitefield/primefield"
 )
 
 // ---------------------------------------------------------------------
@@ -42,14 +42,15 @@ func assertSquaresRoundTrip(t *testing.T, field ff.Field) {
 func assertNonResiduesRejected(t *testing.T, field ff.Field) {
 	t.Helper()
 
-	isSquare := make(map[string]bool)
-	for _, a := range field.Elements() {
-		isSquare[a.Times(a).String()] = true
+	elems := field.Elements()
+	squares := make([]ff.Element, len(elems))
+	for i, a := range elems {
+		squares[i] = a.Times(a)
 	}
 
-	for _, a := range field.Elements() {
+	for _, a := range elems {
 		_, err := Sqrt(field, a)
-		square := isSquare[a.String()]
+		square := containsElement(squares, a)
 
 		switch {
 		case square && err != nil:
@@ -60,6 +61,15 @@ func assertNonResiduesRejected(t *testing.T, field ff.Field) {
 			t.Errorf("Sqrt(%s): got error %v, want ErrNonResidue", a, err)
 		}
 	}
+}
+
+func containsElement(elems []ff.Element, want ff.Element) bool {
+	for _, elem := range elems {
+		if elem.Equal(want) {
+			return true
+		}
+	}
+	return false
 }
 
 // assertBothRootsDistinct checks that for a nonzero square in an odd

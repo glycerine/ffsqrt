@@ -5,12 +5,13 @@
 // order q-1 (q = p^k) — it never looks at the internal representation of
 // field elements. That means the exact same algorithm that computes square
 // roots mod a prime p also computes square roots in GF(p^k): you just need
-// field multiplication, inversion, and exponentiation, plus one element that
-// generates F* (to seed the algorithm with a known non-residue). algobra's
-// ff.Field interface provides all of that directly via MultGenerator().
+// field multiplication, inversion, and exponentiation, plus a quadratic
+// non-residue to seed the algorithm. A multiplicative generator is guaranteed
+// to be one, but this package verifies that seed and falls back to a
+// deterministic search if needed.
 //
-// Built against github.com/ReneBoedker/algobra v0.2.1's ff.Field / ff.Element
-// interfaces (github.com/ReneBoedker/algobra/finitefield/ff), which are
+// Built against github.com/glycerine/algobra v0.2.2-jea's ff.Field / ff.Element
+// interfaces (github.com/glycerine/algobra/finitefield/ff), which are
 // implemented by extfield.Field (arbitrary p^k), primefield.Field (GF(p)),
 // and binfield.Field (GF(2^k)) alike, so this code works unmodified against
 // any of them.
@@ -19,12 +20,14 @@ package ffsqrt
 import (
 	"errors"
 
-	"github.com/ReneBoedker/algobra/finitefield/ff"
+	"github.com/glycerine/algobra/finitefield/ff"
 )
 
 // ErrNonResidue is returned when a has no square root in the field, i.e. a is
 // a quadratic non-residue.
 var ErrNonResidue = errors.New("ffsqrt: element is not a quadratic residue")
+
+var errNoNonResidue = errors.New("ffsqrt: field has no quadratic non-residue")
 
 // Sqrt returns a square root of a in its field f. If a is not a square, it
 // returns ErrNonResidue. The other root (if any) is -root.
@@ -69,11 +72,13 @@ func Sqrt(f ff.Field, a ff.Element) (ff.Element, error) {
 	}
 
 	// General Tonelli-Shanks. We need one quadratic non-residue to seed
-	// the algorithm. Rather than searching randomly (as e.g. libnum
-	// does), we can go straight to one: a generator of the full
-	// multiplicative group F* (order q-1, even here) always satisfies
-	// g^((q-1)/2) = -1, so g itself is guaranteed to be a non-residue.
-	z := f.MultGenerator()
+	// the algorithm. A generator of F* is guaranteed to be one, but some
+	// ff.Field implementations have returned non-generators here, so verify
+	// the seed before trusting it.
+	z, err := findNonResidue(f, half)
+	if err != nil {
+		return nil, err
+	}
 
 	c := z.Pow(Q)
 	t := a.Pow(Q)
@@ -108,4 +113,36 @@ func Sqrt(f ff.Field, a ff.Element) (ff.Element, error) {
 		t = t.Times(c)
 		R = R.Times(b)
 	}
+}
+
+func findNonResidue(f ff.Field, half uint) (ff.Element, error) {
+	if z := f.MultGenerator(); isNonResidue(z, half) {
+		return z, nil
+	}
+
+	// In prime fields this usually finds a non-residue without allocating all
+	// field elements. In extension fields of even degree the prime subfield may
+	// contain only squares, so this is only a cheap first fallback.
+	for n := uint(2); n < f.Char(); n++ {
+		if z := f.ElementFromUnsigned(n); isNonResidue(z, half) {
+			return z, nil
+		}
+	}
+
+	for _, z := range f.Elements() {
+		if isNonResidue(z, half) {
+			return z, nil
+		}
+	}
+
+	return nil, errNoNonResidue
+}
+
+func isNonResidue(a ff.Element, half uint) bool {
+	if a == nil || a.IsZero() || a.Err() != nil {
+		return false
+	}
+
+	euler := a.Pow(half)
+	return euler.Err() == nil && !euler.IsOne()
 }
