@@ -17,7 +17,15 @@ a prime also finds them in GF(p^k), as long as you
 have multiplication, inversion, and exponentiation, 
 plus one element that generates F*. 
 
-algobra's ff.Field/ff.Element interfaces give you those.
+algobra's ff.Field/ff.Element interfaces give you those,
+so we just use them.
+
+Two things the enclosed sqrt.go gets versus a naive port of libnum:
+
+* Char-2 fields are trivial. In GF(2^k) every element is a square (squaring is the Frobenius automorphism), and the inverse is just a^(q/2) — no Tonelli–Shanks loop needed.
+
+* No random search for a non-residue. libnum finds a non-residue by testing random elements. Here, f.MultGenerator() already generates the whole multiplicative group, so g^((q-1)/2) = -1 automatically — it's a guaranteed non-residue with zero search.
+
 
 ------
 License: BSD 3-clause, the same as Go.
