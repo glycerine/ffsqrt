@@ -1,12 +1,14 @@
 ffsqrt
 ======
-
-based on https://github.com/ReneBoedker/algobra , to get
-a square root operation:
+based on https://github.com/ReneBoedker/algobra ,
+to compute the square root of elements from a 
+general finite field GF(p^k), where p is a prime number, 
+and k an integer k>=1:
 
 You don't need a different library. You don't need 
 to reimplement anything field-specific. Tonelli–Shanks 
-(the algorithm libnum uses) only depends on F* being 
+(the algorithm [libnum](https://github.com/ReneBoedker/algobra) uses) 
+only depends on F* being 
 a cyclic group of order q-1, where q = p^k ; it never 
 touches the internal representation of elements. 
 
@@ -16,3 +18,6 @@ have multiplication, inversion, and exponentiation,
 plus one element that generates F*. 
 
 algobra's ff.Field/ff.Element interfaces give you those.
+
+------
+License: BSD 3-clause, the same as Go.
